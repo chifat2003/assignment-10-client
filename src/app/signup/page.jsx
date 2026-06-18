@@ -3,12 +3,14 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signUp } from "@/lib/auth-client";
 
 export default function SignUpPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("user");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -20,16 +22,27 @@ export default function SignUpPage() {
       return;
     }
     setLoading(true);
-
-    // Simulate signup call. Replace with real API call.
     try {
-      await new Promise((r) => setTimeout(r, 700));
-      const user = { name: name || email.split("@")[0], email };
-      localStorage.setItem("user", JSON.stringify(user));
-      // Redirect to home after signup
-      router.push("/");
+      const payload = {
+        email,
+        password,
+        name: name || email.split("@")[0],
+        role,
+      };
+      console.log("Signing up with payload:", payload);
+
+      // better-auth uses signUp.email() for email+password registration
+      const { data, error: signUpError } = await signUp.email(payload);
+      console.log("signUp response:", { data, signUpError });
+
+      if (signUpError) {
+        setError(signUpError.message || "Signup failed. Try again.");
+      } else {
+        router.push("/signin");
+      }
     } catch (err) {
-      setError("Signup failed. Try again.");
+      console.error("signUp error:", err);
+      setError(err?.message || "Signup failed. Try again.");
     } finally {
       setLoading(false);
     }
@@ -49,6 +62,18 @@ export default function SignUpPage() {
               className="mt-1 block w-full rounded border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2"
               placeholder="Your name"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Role</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="mt-1 block w-full rounded border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2"
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
 
           <div>
@@ -94,3 +119,5 @@ export default function SignUpPage() {
     </div>
   );
 }
+
+

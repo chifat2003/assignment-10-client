@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "@/lib/auth-client";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -21,18 +22,21 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
-      // Simulate auth: check localStorage for user
-      await new Promise((r) => setTimeout(r, 500));
-      const raw = localStorage.getItem("user");
-      if (!raw) throw new Error("No account found. Please sign up.");
-      const user = JSON.parse(raw);
-      if (user.email !== email) throw new Error("Invalid credentials.");
+      // Use better-auth's signIn.email() — returns { data, error }
+      const { data, error: signInError } = await signIn.email({ email, password });
+      console.log("signIn response:", { data, signInError });
 
-      // store session marker
-      localStorage.setItem("session", JSON.stringify({ email }));
-      router.push("/");
+      if (signInError) {
+        setError(signInError.message || "Sign in failed. Check your credentials.");
+      } else {
+        if (data?.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+        }
+        router.push("/");
+      }
     } catch (err) {
-      setError(err.message || "Sign in failed.");
+      console.error("signIn error:", err);
+      setError(err?.message || "Sign in failed.");
     } finally {
       setLoading(false);
     }
@@ -80,7 +84,7 @@ export default function SignInPage() {
         </form>
 
         <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-          Don't have an account? {" "}
+          Don&apos;t have an account?{" "}
           <Link href="/signup" className="text-blue-600 hover:underline">Sign up</Link>
         </p>
       </div>
