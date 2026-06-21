@@ -72,7 +72,7 @@ export default function SignUpPage() {
               className="mt-1 block w-full rounded border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2"
             >
               <option value="user">User</option>
-              <option value="admin">Admin</option>
+              <option value="lawyer">Lawyer</option>
             </select>
           </div>
 

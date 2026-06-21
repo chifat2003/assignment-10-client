@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from '@/lib/auth-client';
 import links from './navlinks';
@@ -19,18 +20,20 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="w-full bg-white border-b">
+        <nav className="w-full bg-gray-900 border-b">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="flex h-16 items-center justify-between">
                     {/* Left: Logo */}
                     <div className="flex items-center gap-3">
                         <Link href="/" className="flex items-center gap-2">
-                            <span className="w-8 h-8 inline-flex items-center justify-center bg-blue-600 text-white rounded">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5">
-                                    <path fill="currentColor" d="M12 2L2 7l10 5 10-5-10-5zm0 7.5L4 7.1v6.9l8 4 8-4V7.1L12 9.5z" />
-                                </svg>
-                            </span>
-                            <span className="text-xl font-semibold">MySite</span>
+                            <Image
+                                src="/Untitled design (4).png"
+                                alt="LegalEase logo"
+                                width={140}
+                                height={40}
+                                style={{ objectFit: "contain", height: 40, width: "auto" }}
+                                priority
+                            />
                         </Link>
                     </div>
 
@@ -38,7 +41,7 @@ const Navbar = () => {
                     <div className="flex-1 flex items-center justify-center">
                         <div className="hidden sm:flex space-x-6">
                             {links.map((l) => (
-                                <Link key={l.href} href={l.href} className="text-gray-700 hover:text-gray-900">
+                                <Link key={l.href} href={l.href} className="text-gray-100 hover:text-underline">
                                     {l.label}
                                 </Link>
                             ))}

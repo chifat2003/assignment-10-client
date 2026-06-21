@@ -1,9 +1,13 @@
-import Image from "next/image";
+import AreasOfExpertise from "./component/home/areas";
+import Herohome from "./component/home/herohome";
+import FeaturedLawyers from "./component/home/FeaturedLawyers";
 
 export default function Home() {
   return (
     <div>
-      <h1 className="text-3xl text-white">Hello, Next.js!</h1>
+      <Herohome />
+      <AreasOfExpertise />
+      <FeaturedLawyers />
     </div>
   );
 }
