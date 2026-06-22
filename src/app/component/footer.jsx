@@ -5,7 +5,7 @@ import links from './navlinks';
 
 const Footer = () => {
   return (
-    <footer className="w-full bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-200 mt-8">
+    <footer className="w-full bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {/* Logo */}
