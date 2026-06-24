@@ -13,10 +13,18 @@ const Navbar = () => {
     const user = session?.user ?? null;
     const [mobileOpen, setMobileOpen] = useState(false);
 
+    // Derive dashboard href based on role so the link goes directly to the right page
+    const getDashboardHref = () => {
+        if (!user) return "/dashboard";
+        if (user.role === "admin") return "/dashboard/admin";
+        if (user.role === "lawyer") return "/dashboard/lawyer";
+        return "/dashboard/user";
+    };
+
     const handleSignOut = async () => {
         await signOut();
         localStorage.removeItem('user');
-        router.push('/signin');
+        window.location.href = '/signin'; // Hard redirect clears the Next.js cache so they can't go "back"
     };
 
     return (
@@ -41,12 +49,10 @@ const Navbar = () => {
                     <div className="flex-1 flex items-center justify-center">
                         <div className="hidden sm:flex space-x-6">
                             {links.map((l) => {
-                                // Show Dashboard only when user is logged in
-                                if (l.label === 'Dashboard' && !user) {
-                                    return null;
-                                }
+                                if (l.label === 'Dashboard' && !user) return null;
+                                const href = l.label === 'Dashboard' ? getDashboardHref() : l.href;
                                 return (
-                                    <Link key={l.href} href={l.href} className="text-gray-100 hover:text-underline">
+                                    <Link key={l.href} href={href} className="text-gray-100 hover:text-underline">
                                         {l.label}
                                     </Link>
                                 );

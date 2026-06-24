@@ -1,8 +1,33 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from '@/lib/auth-client';
+import { LoadingSpinner } from '@/app/components/LoadingSpinner';
 
 const AdminDashboard = () => {
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isPending) {
+      if (!session) {
+        router.replace("/signin");
+        return;
+      }
+      if (session.user?.role === "user") {
+        router.replace("/dashboard/user");
+        return;
+      }
+      if (session.user?.role === "lawyer") {
+        router.replace("/dashboard/lawyer");
+        return;
+      }
+    }
+  }, [isPending, session, router]);
+
+  if (isPending) return <LoadingSpinner size="lg" />;
+
   // Mock admin stats data
   const adminStats = [
     {

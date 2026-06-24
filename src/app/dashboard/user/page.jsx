@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import DashboardContent from "@/app/dashboard/components/DashboardContent";
 import { useSession } from '@/lib/auth-client';
 import { LoadingSpinner } from "@/app/components/LoadingSpinner";
@@ -32,42 +33,56 @@ const history = [
 
 export default function UserDashboard() {
     const { data: session, isPending } = useSession();
+    const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
       if (!isPending) {
+        if (!session) {
+          router.replace("/signin");
+          return;
+        }
+        if (session.user?.role === "lawyer") {
+          router.replace("/dashboard/lawyer");
+          return;
+        }
+        if (session.user?.role === "admin") {
+          router.replace("/dashboard/admin");
+          return;
+        }
         const timer = setTimeout(() => setIsLoading(false), 300);
         return () => clearTimeout(timer);
       }
-    }, [isPending]);
+    }, [isPending, session, router]);
 
     if (isPending || isLoading) {
         return <LoadingSpinner size="lg" />;
     }
-  return (
-    <div>
-      <style>{`
-        .ud-header {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          align-items: center;
-          justify-content: space-between;
-          padding: 16px 16px 0;
-        }
-        @media (min-width: 640px) { .ud-header { padding: 20px 24px 0; } }
-        .ud-header h1 { margin: 0; font-size: 20px; font-weight: 700; color: #f8fafc; }
-      `}</style>
-      <div className="ud-header">
-        <h1>Welcome, {session?.user?.name}</h1>
-        <Link
-          href="/dashboard/user/update-profile"
-          style={{ padding: '8px 16px', borderRadius: 8, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
-        >
-          Update Profile
-        </Link>
+
+    return (
+      <div>
+        <style>{`
+          .ud-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 16px 0;
+          }
+          @media (min-width: 640px) { .ud-header { padding: 20px 24px 0; } }
+          .ud-header h1 { margin: 0; font-size: 20px; font-weight: 700; color: #f8fafc; }
+        `}</style>
+        <div className="ud-header">
+          <h1>Welcome, {session?.user?.name}</h1>
+          <Link
+            href="/dashboard/user/update-profile"
+            style={{ padding: '8px 16px', borderRadius: 8, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}
+          >
+            Update Profile
+          </Link>
+        </div>
+        <DashboardContent stats={stats} history={history} role="user" isLoading={isLoading} />
       </div>
-      <DashboardContent stats={stats} history={history} role="user" isLoading={isLoading} />
-    </div>
-  );
+    );
 }

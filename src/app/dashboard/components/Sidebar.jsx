@@ -2,20 +2,12 @@
 'use client';
 
 import { usePathname } from "next/navigation";
-import { Bars, Bell, Envelope, Gear, House, Magnifier, Person, Sliders } from "@gravity-ui/icons";
+import { Bars, House } from "@gravity-ui/icons";
 import { Button, Drawer } from "@heroui/react";
 import Link from "next/link";
 
-export function DashboardSidebar() {
+export function DashboardSidebar({ userRole }) {
     const pathname = usePathname();
-
-    // const navItems = [
-    //     { icon: House, label: "Home", href: "/dashboard" },
-    //     { icon: Magnifier, label: "Search", href: "/lawyers" },
-    //     { icon: Bell, label: "Notifications", href: "/dashboard/notifications" },
-    //     { icon: Envelope, label: "Messages", href: "/dashboard/messages" },
-    //     { icon: Gear, label: "Settings", href: "/dashboard/settings" },
-    // ];
 
     const userLinks = [
         { label: "Profile", href: "/dashboard/user" },
@@ -38,39 +30,22 @@ export function DashboardSidebar() {
         { label: "Analytics", href: "/dashboard/admin/analytics" },
     ];
 
-    // Determine which section the user is in
-    const isUserDashboard = pathname.startsWith("/dashboard/user");
-    const isLawyerDashboard = pathname.startsWith("/dashboard/lawyer");
-    const isAdminDashboard = pathname.startsWith("/dashboard/admin");
-
-    // Get the appropriate dashboard links
     let dashboardLinks = [];
     let dashboardTitle = "";
 
-    if (isUserDashboard) {
-        dashboardLinks = userLinks;
-        dashboardTitle = "User Dashboard";
-    } else if (isLawyerDashboard) {
-        dashboardLinks = lawyerLinks;
-        dashboardTitle = "Lawyer Dashboard";
-    } else if (isAdminDashboard) {
+    if (userRole === "admin") {
         dashboardLinks = adminLinks;
         dashboardTitle = "Admin Dashboard";
+    } else if (userRole === "lawyer") {
+        dashboardLinks = lawyerLinks;
+        dashboardTitle = "Lawyer Dashboard";
+    } else {
+        dashboardLinks = userLinks;
+        dashboardTitle = "User Dashboard";
     }
 
     const navContent = (
         <nav className="flex flex-col gap-2">
-            {/* {navItems.map((item) => (
-                <Link
-                    key={item.label}
-                    href={item.href}
-                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-default"
-                >
-                    <item.icon className="size-5 text-muted" />
-                    {item.label}
-                </Link>
-            ))} */}
-
             {dashboardLinks.length > 0 && (
                 <>
                     <div className="my-2 border-t border-default" />
@@ -82,7 +57,11 @@ export function DashboardSidebar() {
                             <Link
                                 key={item.label}
                                 href={item.href}
-                                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-default-500 transition-colors hover:text-foreground hover:bg-default"
+                                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:text-foreground hover:bg-default ${
+                                    pathname === item.href
+                                        ? "text-foreground bg-default font-medium"
+                                        : "text-default-500"
+                                }`}
                             >
                                 <div className="size-1.5 rounded-full bg-default-400" />
                                 {item.label}
