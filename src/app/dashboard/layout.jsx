@@ -1,11 +1,13 @@
 import React from 'react';
 import { DashboardSidebar } from './components/Sidebar';
 
-const DashboardLayout = ({children}) => {
+const DashboardLayout = ({ children }) => {
     return (
-        <div className='flex  min-h-screen'>
+        <div className="flex min-h-screen">
             <DashboardSidebar />
-            <div className='flex-1'>{children}</div>
+            <div className="flex-1 min-w-0">
+                {children}
+            </div>
         </div>
     );
 };

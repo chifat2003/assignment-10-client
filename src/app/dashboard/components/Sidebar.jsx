@@ -28,6 +28,7 @@ export function DashboardSidebar() {
         { label: "Profile", href: "/dashboard/lawyer" },
         { label: "Hiring History", href: "/dashboard/lawyer/hiring-history" },
         { label: "Manage Legal Profile", href: "/dashboard/lawyer/manage-legal-profile" },
+        { label: "Update Profile", href: "/dashboard/lawyer/update-profile" },
     ];
 
     const adminLinks = [
@@ -100,28 +101,37 @@ export function DashboardSidebar() {
                     {navContent}
                 </div>
             </aside>
-            <Drawer>
-                <Button className="lg:hidden" variant="secondary">
-                    <Bars />
-                    Menu
-                </Button>
-                <Drawer.Backdrop>
-                    <Drawer.Content placement="left">
-                        <Drawer.Dialog>
-                            <Drawer.CloseTrigger />
-                            <Drawer.Header>
-                                <Drawer.Heading>Navigation</Drawer.Heading>
-                            </Drawer.Header>
-                            <Drawer.Body>
 
-                                {navContent}
+            {/* Mobile top bar */}
+            <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center gap-3 px-4 py-3 border-b border-default bg-background/80 backdrop-blur-sm">
+                <Drawer>
+                    <Button size="sm" variant="flat">
+                        <Bars className="size-4" />
+                        <span className="text-sm">Menu</span>
+                    </Button>
+                    <Drawer.Backdrop>
+                        <Drawer.Content placement="left">
+                            <Drawer.Dialog>
+                                <Drawer.CloseTrigger />
+                                <Drawer.Header>
+                                    <Drawer.Heading>Navigation</Drawer.Heading>
+                                </Drawer.Header>
+                                <Drawer.Body>
+                                    {navContent}
+                                </Drawer.Body>
+                            </Drawer.Dialog>
+                        </Drawer.Content>
+                    </Drawer.Backdrop>
+                </Drawer>
+                <span className="text-sm font-semibold text-foreground flex-1">{dashboardTitle}</span>
+                <Link href="/" className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-default-500 transition-colors hover:text-foreground hover:bg-default">
+                    <House className="size-4" />
+                    <span>Home</span>
+                </Link>
+            </div>
 
-                            </Drawer.Body>
-                        </Drawer.Dialog>
-                    </Drawer.Content>
-                </Drawer.Backdrop>
-            </Drawer>
-
+            {/* Spacer so content isn't hidden under the fixed mobile bar */}
+            <div className="lg:hidden h-14" />
         </>
     );
 }

@@ -1,9 +1,18 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import FeaturedLawyerCard from "./FeaturedLawyerCard";
 import lawyersData from "@/app/data/lawyers.json";
+import { SkeletonCard } from "@/app/components/SkeletonLoader";
 
 export default function FeaturedLawyers() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Simulate loading and transition to actual content
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <section
       style={{
@@ -126,15 +135,20 @@ export default function FeaturedLawyers() {
             justifyItems: "center",
           }}
         >
-          {lawyersData.map((lawyer) => (
-            <FeaturedLawyerCard key={lawyer.id} lawyer={lawyer} />
-          ))}
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+          ) : (
+            lawyersData.map((lawyer) => (
+              <FeaturedLawyerCard key={lawyer.id} lawyer={lawyer} />
+            ))
+          )}
         </div>
 
         {/* View all CTA */}
         <div style={{ textAlign: "center", marginTop: 56 }}>
-          <a
-            href="/lawyers"
+          {!isLoading && (
+            <a
+              href="/lawyers"
             id="view-all-lawyers"
             style={{
               display: "inline-flex",
@@ -181,6 +195,7 @@ export default function FeaturedLawyers() {
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </a>
+          )}
         </div>
       </div>
     </section>
