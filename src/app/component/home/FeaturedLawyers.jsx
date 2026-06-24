@@ -1,16 +1,31 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import FeaturedLawyerCard from "./FeaturedLawyerCard";
-import lawyersData from "@/app/data/lawyers.json";
 import { SkeletonCard } from "@/app/components/SkeletonLoader";
 
 export default function FeaturedLawyers() {
   const [isLoading, setIsLoading] = useState(true);
+  const [lawyers, setLawyers] = useState([]);
 
-  // Simulate loading and transition to actual content
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
+    const fetchFeaturedLawyers = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/lawyers');
+        if (!response.ok) throw new Error('Failed to fetch lawyers');
+        
+        const data = await response.json();
+        // Get first 6 lawyers as featured
+        setLawyers(data.slice(0, 6));
+      } catch (error) {
+        console.error('Error fetching featured lawyers:', error);
+        setLawyers([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFeaturedLawyers();
   }, []);
 
   return (
@@ -137,10 +152,14 @@ export default function FeaturedLawyers() {
         >
           {isLoading ? (
             Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
-          ) : (
-            lawyersData.map((lawyer) => (
+          ) : lawyers.length > 0 ? (
+            lawyers.map((lawyer) => (
               <FeaturedLawyerCard key={lawyer.id} lawyer={lawyer} />
             ))
+          ) : (
+            <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#94a3b8', padding: '40px 20px' }}>
+              <p style={{ fontSize: 16, margin: 0 }}>No featured lawyers available at the moment.</p>
+            </div>
           )}
         </div>
 

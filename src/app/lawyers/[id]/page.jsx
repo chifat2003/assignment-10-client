@@ -1,16 +1,61 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import lawyersData from "@/app/data/lawyers.json";
 
-function findLawyer(id) {
-  return lawyersData.find((lawyer) => lawyer.id === id);
+async function findLawyerFromAPI(id) {
+  try {
+    const response = await fetch('http://localhost:5000/api/users');
+    if (!response.ok) return null;
+    
+    const users = await response.json();
+    const user = users.find(u => u._id === id && u.role === 'lawyer');
+    
+    if (!user) return null;
+
+    // Parse languages if it's a string, otherwise use as array
+    let languages = [];
+    if (user.languages) {
+      if (typeof user.languages === 'string') {
+        try {
+          languages = JSON.parse(user.languages);
+        } catch {
+          languages = [user.languages];
+        }
+      } else if (Array.isArray(user.languages)) {
+        languages = user.languages;
+      }
+    }
+
+    // Map API data to component structure
+    return {
+      id: user._id,
+      name: user.name,
+      title: `${user.experience || 0} years experience`,
+      specialization: user.specialization || 'General Practice',
+      avatar: user.image || 'https://i.ibb.co/default-avatar.jpg',
+      rating: user.rating || 0,
+      reviewCount: user.reviewCount || 0,
+      experience: user.experience || 0,
+      casesWon: user.caseWon || 0,
+      successRate: user.rating ? Math.round(user.rating * 20) : 0,
+      bio: user.bio || 'Professional lawyer',
+      location: user.location || 'Not specified',
+      languages: Array.isArray(languages) ? languages : [],
+      fee: 150,
+      availability: user.availability || 'Available',
+      badge: user.rating >= 4.5 ? 'Top Rated' : user.rating >= 4 ? 'Verified' : null,
+      tags: ['Licensed', 'Verified'],
+    };
+  } catch (error) {
+    console.error('Error fetching lawyer from API:', error);
+    return null;
+  }
 }
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
-  const lawyer = findLawyer(resolvedParams.id);
+  const lawyer = await findLawyerFromAPI(resolvedParams.id);
   if (!lawyer) return { title: "Lawyer Not Found" };
   return {
     title: `${lawyer.name} | Lawyer Details`,
@@ -20,7 +65,7 @@ export async function generateMetadata({ params }) {
 
 export default async function LawyerDetailsPage({ params }) {
   const resolvedParams = await params;
-  const lawyer = findLawyer(resolvedParams.id);
+  const lawyer = await findLawyerFromAPI(resolvedParams.id);
   if (!lawyer) notFound();
 
   const { name, title, specialization, avatar, rating, reviewCount, experience, casesWon, location, languages, fee, availability, badge, tags, bio, successRate } = lawyer;
@@ -99,9 +144,10 @@ export default async function LawyerDetailsPage({ params }) {
                   <img src={avatar} alt={`${name} avatar`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
                 <div>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(139,92,246,0.08)", fontSize: 11, fontWeight: 700, color: "#e0e7ff", marginBottom: 8 }}>
+                  {/* <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 12px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(139,92,246,0.08)", fontSize: 11, fontWeight: 700, color: "#e0e7ff", marginBottom: 8 }}>
                     {badge}
-                  </span>
+                  </span> */}
+                  <h2>{name}</h2>
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                     <span style={{ fontSize: 12, fontWeight: 700, color: "#8b5cf6", textTransform: "uppercase", letterSpacing: "0.1em" }}>{specialization}</span>
                     <span style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.1em" }}>{availability}</span>

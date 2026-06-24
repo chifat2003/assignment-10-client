@@ -24,7 +24,14 @@ export default function ServicesPage() {
     const fetchServices = async () => {
       try {
         setIsLoading(true);
-        // For now using mock data - replace with actual API call
+        const response = await fetch('/api/services');
+        if (!response.ok) throw new Error('Failed to fetch services');
+        
+        const data = await response.json();
+        setServices(data);
+      } catch (err) {
+        console.error('Error fetching services:', err);
+        // Fallback to mock data if API fails
         const mockServices = [
           {
             id: 1,
@@ -178,10 +185,7 @@ export default function ServicesPage() {
           },
         ];
 
-        await new Promise(r => setTimeout(r, 600));
         setServices(mockServices);
-      } catch (err) {
-        console.error('Error fetching services:', err);
       } finally {
         setIsLoading(false);
       }

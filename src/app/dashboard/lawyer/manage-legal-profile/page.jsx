@@ -1,17 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { createService } from '@/lib/action/newservice';
 
 const ManageLegalProfile = () => {
   const { data: session, isPending } = useSession();
   
-  const [services, setServices] = useState([
-    { id: 1, name: 'Contract Review', bio: 'Comprehensive review of legal contracts and agreements', fee: '$150/hour', specialization: 'Corporate Law', image: '📋' },
-    { id: 2, name: 'Legal Consultation', bio: 'General legal advice and consultation services', fee: '$100/hour', specialization: 'General Practice', image: '⚖️' },
-    { id: 3, name: 'Document Drafting', bio: 'Professional drafting of legal documents', fee: '$120/hour', specialization: 'Document Preparation', image: '📝' },
-  ]);
+  const [services, setServices] = useState([]);
+  const [isLoadingServices, setIsLoadingServices] = useState(true);
 
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
@@ -19,6 +16,31 @@ const ManageLegalProfile = () => {
   const [newService, setNewService] = useState({ name: '', bio: '', fee: '', specialization: '', image: '📋' });
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(null);
+
+  // Fetch services on mount
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        setIsLoadingServices(true);
+        const response = await fetch('/api/services');
+        if (response.ok) {
+          const data = await response.json();
+          // Filter to show only current lawyer's services
+          const lawyerServices = data.filter(s => s.lawyerName === session?.user?.name);
+          setServices(lawyerServices);
+        }
+      } catch (error) {
+        console.error('Error fetching services:', error);
+      } finally {
+        setIsLoadingServices(false);
+      }
+    };
+
+    if (session?.user?.name) {
+      fetchServices();
+    }
+  }, [session?.user?.name]);
 
   const inputStyle = {
     width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid #3b4256',
@@ -26,9 +48,25 @@ const ManageLegalProfile = () => {
     boxSizing: 'border-box', fontFamily: 'inherit', outline: 'none',
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm('Are you sure you want to delete this service?')) {
-      setServices((prev) => prev.filter((s) => s.id !== id));
+      setDeleteLoading(id);
+      try {
+        const response = await fetch(`/api/services?id=${id}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          setServices((prev) => prev.filter((s) => s.id !== id));
+        } else {
+          alert('Failed to delete service');
+        }
+      } catch (error) {
+        console.error('Error deleting service:', error);
+        alert('Error deleting service');
+      } finally {
+        setDeleteLoading(null);
+      }
     }
   };
 
@@ -175,7 +213,9 @@ const ManageLegalProfile = () => {
               <p style={{ color: '#10b981', fontSize: 14, fontWeight: 600, margin: '0 0 14px 0' }}>{service.fee}</p>
               <div className="mlp-btn-row">
                 <button onClick={() => { setEditingId(service.id); setEditForm(service); }} style={{ flex: 1, background: '#3b82f6', color: '#fff', border: 'none', padding: '8px', borderRadius: '6px', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Edit</button>
-                <button onClick={() => handleDelete(service.id)} style={{ flex: 1, background: '#ef4444', color: '#fff', border: 'none', padding: '8px', borderRadius: '6px', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Delete</button>
+                <button onClick={() => handleDelete(service.id)} disabled={deleteLoading === service.id} style={{ flex: 1, background: deleteLoading === service.id ? '#dc2626' : '#ef4444', color: '#fff', border: 'none', padding: '8px', borderRadius: '6px', cursor: deleteLoading === service.id ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, opacity: deleteLoading === service.id ? 0.75 : 1 }}>
+                  {deleteLoading === service.id ? 'Deleting...' : 'Delete'}
+                </button>
               </div>
             </div>
           )
