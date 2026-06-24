@@ -103,7 +103,7 @@ function LawyerListCard({ lawyer }) {
 const selectStyle = {
   width: "100%", padding: "10px 12px", borderRadius: 10,
   border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)",
-  color: "#f1f5f9", fontSize: 13, fontWeight: 600, cursor: "pointer", outline: "none",
+  color: "#f1f5f9", fontSize: 13, fontWeight: 600, cursor: "pointer", outline: "none", background:'black',
 };
 
 export default function BrowseLawyers() {
@@ -165,14 +165,14 @@ export default function BrowseLawyers() {
         </select>
       </div>
 
-      <div>
+      {/* <div>
         <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#a78bfa", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
           Min Rating — <span style={{ color: "#f1f5f9" }}>{filters.minRating.toFixed(1)}★</span>
         </label>
         <input type="range" min="0" max="5" step="0.5" value={filters.minRating}
           onChange={(e) => setFilters({ ...filters, minRating: parseFloat(e.target.value) })}
           style={{ width: "100%", cursor: "pointer" }} />
-      </div>
+      </div> */}
 
       <div>
         <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#a78bfa", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>

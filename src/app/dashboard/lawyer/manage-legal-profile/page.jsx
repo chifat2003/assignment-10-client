@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useSession } from '@/lib/auth-client';
 import { createService } from '@/lib/action/newservice';
 
 const ManageLegalProfile = () => {
+  const { data: session, isPending } = useSession();
+  
   const [services, setServices] = useState([
     { id: 1, name: 'Contract Review', bio: 'Comprehensive review of legal contracts and agreements', fee: '$150/hour', specialization: 'Corporate Law', image: '📋' },
     { id: 2, name: 'Legal Consultation', bio: 'General legal advice and consultation services', fee: '$100/hour', specialization: 'General Practice', image: '⚖️' },
@@ -41,8 +44,17 @@ const ManageLegalProfile = () => {
     setAddError('');
 
     try {
+      // Include lawyer data from session along with service data
+      const serviceData = {
+        ...newService,
+        lawyerId: session?.user?.id,
+        lawyerName: session?.user?.name,
+        lawyerEmail: session?.user?.email,
+        lawyerImage: session?.user?.image,
+      };
+
       // POST to /api/add-new-service via the createService server action in src/lib/action/newservice.js
-      const result = await createService(newService);
+      const result = await createService(serviceData);
 
       // Use the id returned by the API if available, otherwise fall back to Date.now()
       const serviceToAdd = { ...newService, id: result?.id ?? Date.now() };

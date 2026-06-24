@@ -40,11 +40,17 @@ const Navbar = () => {
                     {/* Center: Links */}
                     <div className="flex-1 flex items-center justify-center">
                         <div className="hidden sm:flex space-x-6">
-                            {links.map((l) => (
-                                <Link key={l.href} href={l.href} className="text-gray-100 hover:text-underline">
-                                    {l.label}
-                                </Link>
-                            ))}
+                            {links.map((l) => {
+                                // Show Dashboard only when user is logged in
+                                if (l.label === 'Dashboard' && !user) {
+                                    return null;
+                                }
+                                return (
+                                    <Link key={l.href} href={l.href} className="text-gray-100 hover:text-underline">
+                                        {l.label}
+                                    </Link>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -73,10 +79,18 @@ const Navbar = () => {
                         ) : user ? (
                             <div className="hidden sm:flex items-center gap-3">
                                 <div className="flex items-center gap-2">
-                                    <span className="w-8 h-8 inline-flex items-center justify-center bg-blue-100 text-blue-700 rounded-full font-semibold text-sm">
-                                        {(user.name || user.email || 'U')[0].toUpperCase()}
-                                    </span>
-                                    <span className="text-gray-700 font-medium">{user.name || user.email}</span>
+                                    {user.image ? (
+                                        <img
+                                            src={user.image}
+                                            alt={user.name || 'Profile'}
+                                            className="w-8 h-8 rounded-full object-cover border border-blue-200"
+                                        />
+                                    ) : (
+                                        <span className="w-8 h-8 inline-flex items-center justify-center bg-blue-100 text-blue-700 rounded-full font-semibold text-sm">
+                                            {(user.name || user.email || 'U')[0].toUpperCase()}
+                                        </span>
+                                    )}
+                                    <span className="text-gray-100 font-medium">{user.name || user.email}</span>
                                 </div>
                                 <button
                                     onClick={handleSignOut}
@@ -99,19 +113,33 @@ const Navbar = () => {
             {mobileOpen && (
                 <div className="sm:hidden border-t">
                     <div className="px-4 py-3 space-y-2">
-                        {links.map((l) => (
-                            <Link key={l.href} href={l.href} className="block px-2 py-1 text-gray-700 hover:bg-gray-50 rounded">
-                                {l.label}
-                            </Link>
-                        ))}
+                        {links.map((l) => {
+                            // Show Dashboard only when user is logged in
+                            if (l.label === 'Dashboard' && !user) {
+                                return null;
+                            }
+                            return (
+                                <Link key={l.href} href={l.href} className="block px-2 py-1 text-gray-700 hover:bg-gray-50 rounded">
+                                    {l.label}
+                                </Link>
+                            );
+                        })}
 
                         {user ? (
                             <div className="pt-2 border-t mt-2 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <span className="w-8 h-8 inline-flex items-center justify-center bg-blue-100 text-blue-700 rounded-full font-semibold text-sm">
-                                        {(user.name || user.email || 'U')[0].toUpperCase()}
-                                    </span>
-                                    <span className="text-gray-700 font-medium">{user.name || user.email}</span>
+                                    {user.image ? (
+                                        <img
+                                            src={user.image}
+                                            alt={user.name || 'Profile'}
+                                            className="w-8 h-8 rounded-full object-cover border border-blue-200"
+                                        />
+                                    ) : (
+                                        <span className="w-8 h-8 inline-flex items-center justify-center bg-blue-100 text-blue-700 rounded-full font-semibold text-sm">
+                                            {(user.name || user.email || 'U')[0].toUpperCase()}
+                                        </span>
+                                    )}
+                                    <span className="text-gray-100 font-medium">{user.name || user.email}</span>
                                 </div>
                                 <button
                                     onClick={handleSignOut}

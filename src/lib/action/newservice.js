@@ -8,8 +8,9 @@ const servicesCollection = db.collection('services');
 
 // Server action — inserts a new service directly into MongoDB.
 // Called from src/app/dashboard/lawyer/manage-legal-profile/page.jsx → handleAddService()
-export const createService = async (newServiceData) => {
-    const { name, bio, fee, specialization, image } = newServiceData;
+// Includes lawyer data from session: lawyerId, lawyerName, lawyerEmail, lawyerImage
+export const createService = async (serviceData) => {
+    const { name, bio, fee, specialization, image, lawyerId, lawyerName, lawyerEmail, lawyerImage } = serviceData;
 
     if (!name || !bio || !fee || !specialization) {
         throw new Error('Missing required fields: name, bio, fee, specialization');
@@ -21,6 +22,11 @@ export const createService = async (newServiceData) => {
         fee,
         specialization,
         image: image || '📋',
+        // Lawyer information from session
+        lawyerId,
+        lawyerName,
+        lawyerEmail,
+        lawyerImage,
         createdAt: new Date(),
     };
 

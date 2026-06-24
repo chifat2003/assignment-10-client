@@ -185,18 +185,18 @@ export default async function LawyerDetailsPage({ params }) {
             <div style={{ padding: 24, borderRadius: 24, background: "rgba(15, 12, 35, 0.95)", border: "1px solid rgba(255,255,255,0.06)" }}>
               <p style={{ margin: "0 0 14px", fontSize: 12, fontWeight: 700, color: "#8b5cf6", textTransform: "uppercase", letterSpacing: "0.14em" }}>Quick Actions</p>
               <div style={{ display: "grid", gap: 12 }}>
-                <a
-                  href={`mailto:hello@lawconnect.com?subject=Book%20a%20consultation%20with%20${encodeURIComponent(name)}`}
+                <Link
+                  href={`/services?lawyer=${encodeURIComponent(name)}`}
                   style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "13px 18px", borderRadius: 14, background: "linear-gradient(135deg, #7c3aed, #4f46e5)", color: "#fff", fontWeight: 700, textDecoration: "none", fontSize: 14 }}
                 >
-                  Book Consultation
-                </a>
-                <Link
-                  href="/signup"
+                  Book Now
+                </Link>
+                <a
+                  href={`mailto:hello@lawconnect.com?subject=Consultation%20inquiry%20from%20${encodeURIComponent(name)}`}
                   style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "13px 18px", borderRadius: 14, border: "1px solid rgba(124,58,237,0.35)", background: "rgba(255,255,255,0.04)", color: "#dbeafe", fontWeight: 700, textDecoration: "none", fontSize: 14 }}
                 >
-                  Create an account
-                </Link>
+                  Email Inquiry
+                </a>
               </div>
             </div>
           </aside>

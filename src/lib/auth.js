@@ -30,6 +30,78 @@ export const auth = betterAuth({
         defaultValue: "user",
         input: true, // allow the client to set this field on signup
       },
+      isBlocked: {
+        defaultValue: false,
+      },
+      // Lawyer-specific fields
+      caseWon: {
+        type: "number",
+        required: false,
+        input: true,
+      },
+      bio: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      experience: {
+        type: "number",
+        required: false,
+        input: true,
+      },
+      languages: {
+        type: "json",
+        required: false,
+        input: true,
+      },
+      location: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      specialization: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      successRate: {
+        type: "number",
+        required: false,
+        input: true,
+      },
+      reviewCount: {
+        type: "number",
+        required: false,
+        input: true,
+        defaultValue: 0,
+      },
+      rating: {
+        type: "number",
+        required: false,
+        input: true,
+        defaultValue: 0,
+      },
+      availability: {
+        type: "string",
+        required: false,
+        input: true,
+        defaultValue: "Available",
+      },
+      badge: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      tags: {
+        type: "json",
+        required: false,
+        input: true,
+      },
+      title: {
+        type: "string",
+        required: false,
+        input: true,
+      },
     },
   },
 });
