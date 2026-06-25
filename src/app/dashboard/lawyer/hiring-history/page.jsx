@@ -1,58 +1,75 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const LawyerHiringHistory = () => {
-  const [hiringRequests, setHiringRequests] = useState([
-    {
-      id: 1,
-      clientName: 'John Smith',
-      clientEmail: 'john@example.com',
-      requestDate: '2024-12-15',
-      serviceType: 'Contract Review',
-      status: 'pending',
-    },
-    {
-      id: 2,
-      clientName: 'Emily Davis',
-      clientEmail: 'emily@example.com',
-      requestDate: '2024-12-14',
-      serviceType: 'Legal Consultation',
-      status: 'pending',
-    },
-    {
-      id: 3,
-      clientName: 'Robert Wilson',
-      clientEmail: 'robert@example.com',
-      requestDate: '2024-12-13',
-      serviceType: 'Document Drafting',
-      status: 'pending',
-    },
-    {
-      id: 4,
-      clientName: 'Alice Brown',
-      clientEmail: 'alice@example.com',
-      requestDate: '2024-12-12',
-      serviceType: 'Legal Consultation',
-      status: 'pending',
-    },
-  ]);
+  const [hiringRequests, setHiringRequests] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [successMessage, setSuccessMessage] = useState('');
 
-  const handleAccept = (id) => {
-    setHiringRequests((prev) =>
-      prev.map((req) =>
-        req.id === id ? { ...req, status: 'accepted' } : req
-      )
-    );
+  useEffect(() => {
+    fetchHirings();
+  }, []);
+
+  const fetchHirings = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/hirings');
+      if (!res.ok) throw new Error('Failed to fetch hirings');
+      const data = await res.json();
+      setHiringRequests(data);
+    } catch (err) {
+      console.error('Error fetching hirings:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleReject = (id) => {
-    setHiringRequests((prev) =>
-      prev.map((req) =>
-        req.id === id ? { ...req, status: 'rejected' } : req
-      )
-    );
+  const handleAccept = async (id) => {
+    try {
+      const res = await fetch(`/api/hirings/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'accepted' }),
+      });
+
+      if (!res.ok) throw new Error('Failed to accept hiring');
+
+      setSuccessMessage('Hiring request accepted');
+      fetchHirings();
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      console.error('Error accepting hiring:', err);
+      alert('Failed to accept hiring request');
+    }
   };
+
+  const handleReject = async (id) => {
+    try {
+      const res = await fetch(`/api/hirings/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'rejected' }),
+      });
+
+      if (!res.ok) throw new Error('Failed to reject hiring');
+
+      setSuccessMessage('Hiring request rejected');
+      fetchHirings();
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      console.error('Error rejecting hiring:', err);
+      alert('Failed to reject hiring request');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div style={{ padding: '24px', width: '100%', color: '#9ca3af' }}>
+        Loading hiring requests...
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '24px', width: '100%' }}>
@@ -65,6 +82,13 @@ const LawyerHiringHistory = () => {
           Review and manage client hiring requests
         </p>
       </div>
+
+      {/* Success message */}
+      {successMessage && (
+        <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', fontSize: 14, fontWeight: 600, marginBottom: 20 }}>
+          {successMessage}
+        </div>
+      )}
 
       {/* Requests Table */}
       <div style={{
@@ -108,7 +132,7 @@ const LawyerHiringHistory = () => {
                   color: '#9ca3af',
                   backgroundColor: 'rgba(0, 0, 0, 0.2)',
                 }}>
-                  Service Type
+                  Service / Fee
                 </th>
                 <th style={{
                   padding: '16px 20px',
@@ -152,25 +176,28 @@ const LawyerHiringHistory = () => {
                   }}
                 >
                   <td style={{ padding: '16px 20px', fontSize: '13px', color: '#e5e7eb' }}>
-                    {request.clientName}
+                    {request.userName || 'N/A'}
                   </td>
                   <td style={{ padding: '16px 20px', fontSize: '13px', color: '#e5e7eb' }}>
-                    {request.clientEmail}
+                    {request.userEmail || 'N/A'}
                   </td>
                   <td style={{ padding: '16px 20px', fontSize: '13px', color: '#e5e7eb' }}>
-                    <span style={{
-                      background: 'rgba(139, 92, 246, 0.2)',
-                      color: '#c084fc',
-                      padding: '4px 12px',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                    }}>
-                      {request.serviceType}
-                    </span>
+                    <div>
+                      <span style={{
+                        background: 'rgba(139, 92, 246, 0.2)',
+                        color: '#c084fc',
+                        padding: '4px 12px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                      }}>
+                        {request.serviceName || request.specialization || 'General'}
+                      </span>
+                      <span style={{ display: 'block', fontSize: 12, color: '#6366f1', marginTop: 4 }}>${request.fee}/hr</span>
+                    </div>
                   </td>
                   <td style={{ padding: '16px 20px', fontSize: '13px', color: '#9ca3af' }}>
-                    {request.requestDate}
+                    {new Date(request.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </td>
                   <td style={{ padding: '16px 20px', fontSize: '13px' }}>
                     <span style={{
@@ -229,9 +256,16 @@ const LawyerHiringHistory = () => {
                         </button>
                       </div>
                     ) : (
-                      <span style={{ color: '#9ca3af', fontSize: '12px', fontStyle: 'italic' }}>
-                        {request.status === 'accepted' ? 'Accepted' : 'Rejected'}
-                      </span>
+                      <div>
+                        <span style={{ color: request.status === 'accepted' ? '#10b981' : '#ef4444', fontSize: '12px', fontStyle: 'italic' }}>
+                          {request.status === 'accepted' ? 'Accepted' : 'Rejected'}
+                        </span>
+                        {request.paymentStatus === 'paid' && (
+                          <span style={{ display: 'block', fontSize: 11, color: '#6366f1', marginTop: 2 }}>
+                            💳 Paid
+                          </span>
+                        )}
+                      </div>
                     )}
                   </td>
                 </tr>

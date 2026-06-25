@@ -1,13 +1,8 @@
 'use client';
 
 import { useSession } from '@/lib/auth-client';
-
-const mockHiringHistory = [
-  { id: 1, lawyerName: 'Alexandra Chen', specialisation: 'Corporate Law', fee: '$250/hr', hiringDate: 'Jun 20, 2026', status: 'accepted' },
-  { id: 2, lawyerName: 'David Okonkwo', specialisation: 'Criminal Defense', fee: '$180/hr', hiringDate: 'Jun 18, 2026', status: 'pending' },
-  { id: 3, lawyerName: 'Marcus Rivera', specialisation: 'Family Law', fee: '$150/hr', hiringDate: 'Jun 10, 2026', status: 'rejected' },
-  { id: 4, lawyerName: 'Priya Sharma', specialisation: 'Immigration Law', fee: '$200/hr', hiringDate: 'May 28, 2026', status: 'accepted' },
-];
+import { useState, useEffect } from 'react';
+import PaymentModal from '@/app/components/PaymentModal';
 
 const statusStyles = {
   pending: { bg: 'rgba(234,179,8,0.12)', color: '#facc15', label: 'Pending' },
@@ -16,9 +11,46 @@ const statusStyles = {
 };
 
 export default function HiringHistory() {
-  const { isPending } = useSession();
+  const { isPending, data: session } = useSession();
+  const [hirings, setHirings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedHiring, setSelectedHiring] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
 
-  if (isPending) return <div style={{ padding: 24, color: '#94a3b8' }}>Loading...</div>;
+  useEffect(() => {
+    const fetchHirings = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch('/api/hirings');
+        if (!res.ok) throw new Error('Failed to fetch hirings');
+        const data = await res.json();
+        setHirings(data);
+      } catch (err) {
+        console.error('Error fetching hirings:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (session) {
+      fetchHirings();
+    }
+  }, [session]);
+
+  const handlePaymentSuccess = async ({ transactionId }) => {
+    setSuccessMessage(`Payment successful! Transaction ID: ${transactionId}`);
+    
+    // Refresh hirings to show updated payment status
+    const res = await fetch('/api/hirings');
+    if (res.ok) {
+      const data = await res.json();
+      setHirings(data);
+    }
+
+    setTimeout(() => setSuccessMessage(''), 5000);
+  };
+
+  if (isPending || isLoading) return <div style={{ padding: 24, color: '#94a3b8' }}>Loading...</div>;
 
   return (
     <div style={{ padding: '16px' }}>
@@ -43,6 +75,21 @@ export default function HiringHistory() {
         </p>
       </div>
 
+      {/* Success message */}
+      {successMessage && (
+        <div style={{ padding: '12px 16px', borderRadius: 10, background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', fontSize: 14, fontWeight: 600, marginBottom: 20 }}>
+          {successMessage}
+        </div>
+      )}
+
+      {hirings.length === 0 ? (
+        <div style={{ padding: 60, textAlign: 'center', color: '#475569' }}>
+          <p style={{ fontSize: 16, fontWeight: 700 }}>No hiring requests yet</p>
+          <p style={{ fontSize: 14 }}>Browse lawyers and hire one to see your history here</p>
+        </div>
+      ) : (
+        <>
+
       {/* ── Desktop table ── */}
       <div
         className="hh-table-wrap"
@@ -60,25 +107,35 @@ export default function HiringHistory() {
               </tr>
             </thead>
             <tbody>
-              {mockHiringHistory.map((row, idx) => {
+              {hirings.map((row, idx) => {
                 const s = statusStyles[row.status];
+                const isPaid = row.paymentStatus === 'paid';
+                const canPay = row.status === 'accepted' && !isPaid;
+
                 return (
                   <tr
                     key={row.id}
-                    style={{ borderBottom: idx < mockHiringHistory.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', transition: 'background 0.15s' }}
+                    style={{ borderBottom: idx < hirings.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none', transition: 'background 0.15s' }}
                     onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
                     <td style={{ padding: '14px 16px', color: '#f1f5f9', fontWeight: 600 }}>{row.lawyerName}</td>
-                    <td style={{ padding: '14px 16px', color: '#94a3b8' }}>{row.specialisation}</td>
-                    <td style={{ padding: '14px 16px', color: '#94a3b8' }}>{row.fee}</td>
-                    <td style={{ padding: '14px 16px', color: '#94a3b8', whiteSpace: 'nowrap' }}>{row.hiringDate}</td>
+                    <td style={{ padding: '14px 16px', color: '#94a3b8' }}>{row.specialization || 'General'}</td>
+                    <td style={{ padding: '14px 16px', color: '#94a3b8' }}>${row.fee}/hr</td>
+                    <td style={{ padding: '14px 16px', color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                      {new Date(row.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </td>
                     <td style={{ padding: '14px 16px' }}>
                       <span style={{ padding: '4px 10px', borderRadius: 999, fontSize: 12, fontWeight: 600, background: s.bg, color: s.color }}>{s.label}</span>
                     </td>
                     <td style={{ padding: '14px 16px' }}>
-                      {row.status === 'accepted' ? (
+                      {isPaid ? (
+                        <span style={{ padding: '6px 14px', borderRadius: 8, background: 'rgba(16,185,129,0.12)', color: '#10b981', fontSize: 13, fontWeight: 600 }}>
+                          Paid
+                        </span>
+                      ) : canPay ? (
                         <button
+                          onClick={() => setSelectedHiring(row)}
                           style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
                           onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
                           onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
@@ -99,8 +156,11 @@ export default function HiringHistory() {
 
       {/* ── Mobile cards ── */}
       <div className="hh-cards">
-        {mockHiringHistory.map((row) => {
+        {hirings.map((row) => {
           const s = statusStyles[row.status];
+          const isPaid = row.paymentStatus === 'paid';
+          const canPay = row.status === 'accepted' && !isPaid;
+
           return (
             <div
               key={row.id}
@@ -110,7 +170,7 @@ export default function HiringHistory() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                 <div>
                   <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: '#f1f5f9' }}>{row.lawyerName}</p>
-                  <p style={{ margin: '3px 0 0', fontSize: 12, color: '#64748b' }}>{row.specialisation}</p>
+                  <p style={{ margin: '3px 0 0', fontSize: 12, color: '#64748b' }}>{row.specialization || 'General'}</p>
                 </div>
                 <span style={{ padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600, background: s.bg, color: s.color, whiteSpace: 'nowrap', marginLeft: 8 }}>
                   {s.label}
@@ -119,22 +179,40 @@ export default function HiringHistory() {
 
               {/* Meta row */}
               <div style={{ display: 'flex', gap: 16, marginBottom: 12 }}>
-                <span style={{ fontSize: 13, color: '#94a3b8' }}>{row.fee}</span>
-                <span style={{ fontSize: 13, color: '#94a3b8' }}>{row.hiringDate}</span>
+                <span style={{ fontSize: 13, color: '#94a3b8' }}>${row.fee}/hr</span>
+                <span style={{ fontSize: 13, color: '#94a3b8' }}>
+                  {new Date(row.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </span>
               </div>
 
               {/* Action */}
-              {row.status === 'accepted' && (
+              {isPaid ? (
+                <div style={{ padding: '9px 0', borderRadius: 8, background: 'rgba(16,185,129,0.12)', color: '#10b981', fontSize: 14, fontWeight: 600, textAlign: 'center' }}>
+                  Paid
+                </div>
+              ) : canPay ? (
                 <button
+                  onClick={() => setSelectedHiring(row)}
                   style={{ width: '100%', padding: '9px 0', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
                 >
                   Pay Now
                 </button>
-              )}
+              ) : null}
             </div>
           );
         })}
       </div>
+      </>
+      )}
+
+      {/* Payment modal */}
+      {selectedHiring && (
+        <PaymentModal
+          hiring={selectedHiring}
+          onClose={() => setSelectedHiring(null)}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   );
 }

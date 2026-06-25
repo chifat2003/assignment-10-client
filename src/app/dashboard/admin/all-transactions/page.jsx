@@ -1,82 +1,28 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 const AllTransactions = () => {
-  const transactions = [
-    {
-      id: 'TXN001',
-      userEmail: 'john@example.com',
-      lawyerEmail: 'sarah@example.com',
-      amount: '$250',
-      date: '2024-12-15',
-      status: 'completed',
-      type: 'hire',
-    },
-    {
-      id: 'TXN002',
-      userEmail: 'emily@example.com',
-      lawyerEmail: 'michael@example.com',
-      amount: '$180',
-      date: '2024-12-14',
-      status: 'completed',
-      type: 'booking',
-    },
-    {
-      id: 'TXN003',
-      userEmail: 'robert@example.com',
-      lawyerEmail: 'jessica@example.com',
-      amount: '$320',
-      date: '2024-12-13',
-      status: 'pending',
-      type: 'hire',
-    },
-    {
-      id: 'TXN004',
-      userEmail: 'alice@example.com',
-      lawyerEmail: 'david@example.com',
-      amount: '$200',
-      date: '2024-12-12',
-      status: 'completed',
-      type: 'booking',
-    },
-    {
-      id: 'TXN005',
-      userEmail: 'michael@example.com',
-      lawyerEmail: 'jennifer@example.com',
-      amount: '$275',
-      date: '2024-12-11',
-      status: 'completed',
-      type: 'hire',
-    },
-    {
-      id: 'TXN006',
-      userEmail: 'patricia@example.com',
-      lawyerEmail: 'christopher@example.com',
-      amount: '$190',
-      date: '2024-12-10',
-      status: 'pending',
-      type: 'booking',
-    },
-    {
-      id: 'TXN007',
-      userEmail: 'david@example.com',
-      lawyerEmail: 'sarah@example.com',
-      amount: '$300',
-      date: '2024-12-09',
-      status: 'completed',
-      type: 'hire',
-    },
-    {
-      id: 'TXN008',
-      userEmail: 'jane@example.com',
-      lawyerEmail: 'michael@example.com',
-      amount: '$150',
-      date: '2024-12-08',
-      status: 'failed',
-      type: 'booking',
-    },
-  ];
+  const [transactions, setTransactions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch('/api/transactions');
+        if (!res.ok) throw new Error('Failed to fetch transactions');
+        const data = await res.json();
+        setTransactions(data);
+      } catch (err) {
+        console.error('Error fetching transactions:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, []);
 
   const getStatusStyle = (status) => {
     switch (status) {
@@ -103,6 +49,14 @@ const AllTransactions = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div style={{ padding: '24px', width: '100%', color: '#9ca3af' }}>
+        Loading transactions...
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: '24px', width: '100%' }}>
       {/* Header */}
@@ -114,6 +68,13 @@ const AllTransactions = () => {
           View all platform transactions ({transactions.length} total)
         </p>
       </div>
+
+      {transactions.length === 0 ? (
+        <div style={{ padding: 60, textAlign: 'center', color: '#475569' }}>
+          <p style={{ fontSize: 16, fontWeight: 700 }}>No transactions yet</p>
+          <p style={{ fontSize: 14 }}>Transactions will appear here once users make payments</p>
+        </div>
+      ) : (
 
       {/* Transactions Table */}
       <div style={{
@@ -213,7 +174,7 @@ const AllTransactions = () => {
                     }}
                   >
                     <td style={{ padding: '16px 20px', fontSize: '13px', color: '#e5e7eb', fontWeight: '600' }}>
-                      {txn.id}
+                      {txn.stripePaymentIntentId?.substring(3, 15) || txn.id}
                     </td>
                     <td style={{ padding: '16px 20px', fontSize: '13px', color: '#9ca3af' }}>
                       {txn.userEmail}
@@ -222,22 +183,22 @@ const AllTransactions = () => {
                       {txn.lawyerEmail}
                     </td>
                     <td style={{ padding: '16px 20px', fontSize: '13px', color: '#e5e7eb', fontWeight: '600' }}>
-                      {txn.amount}
+                      ${txn.amount.toFixed(2)}
                     </td>
                     <td style={{ padding: '16px 20px', fontSize: '13px', color: '#9ca3af' }}>
-                      {txn.date}
+                      {new Date(txn.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
                     <td style={{ padding: '16px 20px', fontSize: '13px' }}>
                       <span style={{
-                        background: txn.type === 'hire' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(59, 130, 246, 0.2)',
-                        color: txn.type === 'hire' ? '#c084fc' : '#60a5fa',
+                        background: 'rgba(139, 92, 246, 0.2)',
+                        color: '#c084fc',
                         padding: '4px 12px',
                         borderRadius: '6px',
                         fontSize: '12px',
                         fontWeight: '500',
                         textTransform: 'capitalize',
                       }}>
-                        {txn.type}
+                        {txn.specialization || txn.serviceName || 'Legal Service'}
                       </span>
                     </td>
                     <td style={{ padding: '16px 20px', fontSize: '13px' }}>
@@ -260,6 +221,7 @@ const AllTransactions = () => {
           </table>
         </div>
       </div>
+      )}
 
       <style>{`
         @media (max-width: 768px) {
