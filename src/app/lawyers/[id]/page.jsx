@@ -4,7 +4,9 @@ import HireButton from "./HireButton";
 
 async function findLawyerFromAPI(id) {
   try {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = process.env.BACKEND_URL
+      || process.env.NEXT_PUBLIC_BACKEND_URL
+      || 'http://localhost:5000';
     const response = await fetch(`${backendUrl}/api/users`);
     if (!response.ok) return null;
     

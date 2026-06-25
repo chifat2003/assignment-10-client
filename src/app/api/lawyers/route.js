@@ -1,21 +1,24 @@
 export async function GET() {
   try {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+    // Use server-side env var (BACKEND_URL) or fall back to NEXT_PUBLIC_BACKEND_URL
+    const backendUrl = process.env.BACKEND_URL
+      || process.env.NEXT_PUBLIC_BACKEND_URL
+      || 'http://localhost:5000';
     const response = await fetch(`${backendUrl}/api/users`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });
-    
+
     if (!response.ok) {
       console.error(`Backend API error: ${response.status}`);
       return Response.json([], { status: 200 });
     }
-    
+
     const data = await response.json();
-    
+
     // Filter to show only lawyers
     const lawyersOnly = data.filter(user => user.role === 'lawyer' && !user.isBlocked);
-    
+
     // Map to component structure
     const mappedLawyers = lawyersOnly.map((user, index) => {
       // Parse languages if it's a string, otherwise use as array
