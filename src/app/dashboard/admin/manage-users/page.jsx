@@ -49,25 +49,27 @@ const ManageUsersPage = () => {
     setFilteredUsers(filtered);
   }, [searchTerm, roleFilter, users]);
 
-  const handleRoleChange = async (userId, newRole) => {
-    try {
-      await setUserRole(userId, newRole);
-      setUsers(users.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
-      setSuccessMessage(`User role updated to ${newRole}`);
-      setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (err) {
-      console.error('Error updating role:', err);
-    }
-  };
-
   const handleToggleBlock = async (userId, currentBlockStatus) => {
     try {
       await toggleBlockUser(userId, !currentBlockStatus);
-      setUsers(users.map((u) => (u.id === userId ? { ...u, isBlocked: !currentBlockStatus } : u)));
+      setUsers(users.map((u) => (u._id === userId || u.id === userId ? { ...u, isBlocked: !currentBlockStatus } : u)));
       setSuccessMessage(`User ${!currentBlockStatus ? 'blocked' : 'unblocked'} successfully`);
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       console.error('Error toggling block:', err);
+      setSuccessMessage('Error blocking/unblocking user');
+    }
+  };
+
+  const handleRoleChange = async (userId, newRole) => {
+    try {
+      await setUserRole(userId, newRole);
+      setUsers(users.map((u) => (u._id === userId || u.id === userId ? { ...u, role: newRole } : u)));
+      setSuccessMessage(`User role updated to ${newRole}`);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      console.error('Error updating role:', err);
+      setSuccessMessage('Error updating role');
     }
   };
 
@@ -197,7 +199,7 @@ const ManageUsersPage = () => {
                 ) : (
                   filteredUsers.map((user, index) => (
                     <tr
-                      key={user.id}
+                      key={user._id || user.id}
                       style={{
                         borderBottom: index !== filteredUsers.length - 1 ? '1px solid #3b4256' : 'none',
                         backgroundColor: index % 2 === 0 ? 'transparent' : 'rgba(0, 0, 0, 0.1)',
@@ -212,7 +214,7 @@ const ManageUsersPage = () => {
                       <td style={{ padding: '16px 20px', fontSize: '13px' }}>
                         <select
                           value={user.role}
-                          onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                          onChange={(e) => handleRoleChange(user._id || user.id, e.target.value)}
                           style={{
                             padding: '6px 8px',
                             background: 'rgba(0, 0, 0, 0.3)',
@@ -245,7 +247,7 @@ const ManageUsersPage = () => {
                       </td>
                       <td style={{ padding: '16px 20px', fontSize: '13px' }}>
                         <button
-                          onClick={() => handleToggleBlock(user.id, user.isBlocked)}
+                          onClick={() => handleToggleBlock(user._id || user.id, user.isBlocked)}
                           style={{
                             padding: '6px 12px',
                             background: user.isBlocked ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',

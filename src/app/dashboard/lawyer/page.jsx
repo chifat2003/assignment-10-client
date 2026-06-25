@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { LoadingSpinner } from "@/app/components/LoadingSpinner";
@@ -52,38 +53,27 @@ export default function LawyerDashboard() {
 
   const [hirings,     setHirings]     = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
-  const [authReady,   setAuthReady]   = useState(false);
 
-  /* ── auth guard ── */
+  /* ── auth guard + fetch ── */
   useEffect(() => {
     if (isPending) return;
-    if (!session)                          { router.replace("/signin");         return; }
-    if (session.user?.role === "user")     { router.replace("/dashboard/user"); return; }
+    if (!session)                          { router.replace("/signin");          return; }
+    if (session.user?.role === "user")     { router.replace("/dashboard/user");  return; }
     if (session.user?.role === "admin")    { router.replace("/dashboard/admin"); return; }
-    setAuthReady(true);
+
+    let cancelled = false;
+    setDataLoading(true);
+
+    fetch("/api/hirings")
+      .then((res) => (res.ok ? res.json() : Promise.reject("fetch failed")))
+      .then((data) => { if (!cancelled) setHirings(Array.isArray(data) ? data : []); })
+      .catch((e) => { console.error("Error fetching hirings:", e); if (!cancelled) setHirings([]); })
+      .finally(() => { if (!cancelled) setDataLoading(false); });
+
+    return () => { cancelled = true; };
   }, [isPending, session, router]);
 
-  /* ── fetch hirings ── */
-  const fetchHirings = useCallback(async () => {
-    try {
-      setDataLoading(true);
-      const res = await fetch("/api/hirings");
-      if (!res.ok) throw new Error("fetch failed");
-      const data = await res.json();
-      setHirings(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error("Error fetching hirings:", e);
-      setHirings([]);
-    } finally {
-      setDataLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (authReady) fetchHirings();
-  }, [authReady, fetchHirings]);
-
-  if (isPending || !authReady) return <LoadingSpinner size="lg" />;
+  if (isPending) return <LoadingSpinner size="lg" />;
 
   /* ── derived stats ── */
   const totalRequests = hirings.length;
@@ -277,7 +267,7 @@ export default function LawyerDashboard() {
             {/* Avatar */}
             <div className="ld-avatar">
               {avatarSrc
-                ? <img src={avatarSrc} alt={user?.name} />
+                ? <Image src={avatarSrc} alt={user?.name || "avatar"} width={88} height={88} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 : <span className="init">{initials}</span>
               }
             </div>
