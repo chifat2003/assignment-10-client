@@ -32,7 +32,8 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/admin/transactions', {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+        const res = await fetch(`${backendUrl}/api/admin/transactions`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

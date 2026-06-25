@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { LoadingSpinner } from '@/app/components/LoadingSpinner';
-import dynamic from 'next/dynamic';
 
 const ITEMS_PER_PAGE = 12;
 

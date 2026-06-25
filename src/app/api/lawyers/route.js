@@ -1,6 +1,7 @@
 export async function GET() {
   try {
-    const response = await fetch('http://localhost:5000/api/users', {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+    const response = await fetch(`${backendUrl}/api/users`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });

@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { isAdmin } from '@/lib/roles';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export const useAdmin = () => {
   const { data: session } = useSession();

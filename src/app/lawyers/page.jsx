@@ -185,7 +185,7 @@ export default function BrowseLawyers() {
         {error && (
           <div style={{ marginBottom: 20, padding: 16, borderRadius: 12, background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#fca5a5' }}>
             <p style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>Error: {error}</p>
-            <p style={{ margin: '8px 0 0', fontSize: 12 }}>Make sure your backend API is running at http://localhost:5000</p>
+            <p style={{ margin: '8px 0 0', fontSize: 12 }}>Make sure your backend API is running and accessible</p>
           </div>
         )}
 
