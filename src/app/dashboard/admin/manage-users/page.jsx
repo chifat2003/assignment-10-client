@@ -1,268 +1,295 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
+import { useAdmin } from '@/app/hooks/useAdmin';
+import { AdminGuard } from '@/app/components/AdminGuard';
 
-const ManageUsers = () => {
-  const [users, setUsers] = useState([
-    { id: 1, name: "John Smith", email: "john@example.com", role: "user" },
-    { id: 2, name: "Sarah Johnson", email: "sarah@example.com", role: "lawyer" },
-    { id: 3, name: "Michael Chen", email: "michael@example.com", role: "user" },
-    { id: 4, name: "Jessica Martinez", email: "jessica@example.com", role: "lawyer" },
-    { id: 5, name: "David Lee", email: "david@example.com", role: "user" },
-    { id: 6, name: "Emily Wilson", email: "emily@example.com", role: "admin" },
-    { id: 7, name: "Robert Taylor", email: "robert@example.com", role: "lawyer" },
-    { id: 8, name: "Patricia Brown", email: "patricia@example.com", role: "user" },
-  ]);
+const ManageUsersPage = () => {
+  const { fetchAllUsers, setUserRole, toggleBlockUser, loading, error } = useAdmin();
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [action, setAction] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
 
-  const [editingId, setEditingId] = useState(null);
-  const [newRole, setNewRole] = useState("");
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        const data = await fetchAllUsers();
+        setUsers(data || []);
+        setFilteredUsers(data || []);
+      } catch (err) {
+        console.error('Error loading users:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const handleChangeRole = (id, currentRole) => {
-    setEditingId(id);
-    setNewRole(currentRole);
+    loadUsers();
+  }, [fetchAllUsers]);
+
+  useEffect(() => {
+    let filtered = users;
+
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (user) =>
+          user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (roleFilter !== 'all') {
+      filtered = filtered.filter((user) => user.role === roleFilter);
+    }
+
+    setFilteredUsers(filtered);
+  }, [searchTerm, roleFilter, users]);
+
+  const handleRoleChange = async (userId, newRole) => {
+    try {
+      await setUserRole(userId, newRole);
+      setUsers(users.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
+      setSuccessMessage(`User role updated to ${newRole}`);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      console.error('Error updating role:', err);
+    }
   };
 
-  const handleSaveRole = (id) => {
-    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, role: newRole } : u)));
-    setEditingId(null);
-  };
-
-  const handleDeleteUser = (id) => {
-    if (confirm("Are you sure you want to delete this user?")) {
-      setUsers((prev) => prev.filter((u) => u.id !== id));
+  const handleToggleBlock = async (userId, currentBlockStatus) => {
+    try {
+      await toggleBlockUser(userId, !currentBlockStatus);
+      setUsers(users.map((u) => (u.id === userId ? { ...u, isBlocked: !currentBlockStatus } : u)));
+      setSuccessMessage(`User ${!currentBlockStatus ? 'blocked' : 'unblocked'} successfully`);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      console.error('Error toggling block:', err);
     }
   };
 
   const getRoleColor = (role) => {
     switch (role) {
-      case "admin":
-        return { bg: "rgba(239, 68, 68, 0.2)", color: "#ef4444" };
-      case "lawyer":
-        return { bg: "rgba(139, 92, 246, 0.2)", color: "#c084fc" };
-      case "user":
-        return { bg: "rgba(59, 130, 246, 0.2)", color: "#60a5fa" };
+      case 'admin':
+        return '#f59e0b';
+      case 'lawyer':
+        return '#8b5cf6';
+      case 'user':
+        return '#3b82f6';
       default:
-        return { bg: "rgba(107, 114, 128, 0.2)", color: "#9ca3af" };
+        return '#9ca3af';
     }
   };
 
-  return (
-    <div style={{ padding: "24px", width: "100%" }}>
-      <div style={{ marginBottom: "32px" }}>
-        <h1 style={{ fontSize: "28px", fontWeight: "bold", color: "#ffffff", margin: "0 0 8px 0" }}>
-          Manage Users
-        </h1>
-        <p style={{ color: "#9ca3af", fontSize: "14px", margin: 0 }}>
-          View, edit roles, and manage user accounts ({users.length} total)
-        </p>
-      </div>
+  if (isLoading) {
+    return (
+      <AdminGuard>
+        <div style={{ padding: '24px' }}>Loading users...</div>
+      </AdminGuard>
+    );
+  }
 
-      <div
-        style={{
-          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
-          border: "1px solid #3b4256",
-          borderRadius: "12px",
-          overflow: "hidden",
-        }}
-      >
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid #3b4256" }}>
-                <th
-                  style={{
-                    padding: "16px 20px",
-                    textAlign: "left",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    color: "#9ca3af",
-                    backgroundColor: "rgba(0, 0, 0, 0.2)",
-                  }}
-                >
-                  Name
-                </th>
-                <th
-                  style={{
-                    padding: "16px 20px",
-                    textAlign: "left",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    color: "#9ca3af",
-                    backgroundColor: "rgba(0, 0, 0, 0.2)",
-                  }}
-                >
-                  Email
-                </th>
-                <th
-                  style={{
-                    padding: "16px 20px",
-                    textAlign: "left",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    color: "#9ca3af",
-                    backgroundColor: "rgba(0, 0, 0, 0.2)",
-                  }}
-                >
-                  Current Role
-                </th>
-                <th
-                  style={{
-                    padding: "16px 20px",
-                    textAlign: "center",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    color: "#9ca3af",
-                    backgroundColor: "rgba(0, 0, 0, 0.2)",
-                  }}
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user, index) => {
-                const roleColor = getRoleColor(user.role);
-                return (
-                  <tr
-                    key={user.id}
-                    style={{
-                      borderBottom: index !== users.length - 1 ? "1px solid #3b4256" : "none",
-                      backgroundColor: index % 2 === 0 ? "transparent" : "rgba(0, 0, 0, 0.1)",
-                    }}
-                  >
-                    <td style={{ padding: "16px 20px", fontSize: "13px", color: "#e5e7eb", fontWeight: "500" }}>
-                      {user.name}
+  return (
+    <AdminGuard>
+      <div style={{ padding: '24px', width: '100%' }}>
+        {/* Header */}
+        <div style={{ marginBottom: '24px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#ffffff', margin: '0 0 8px 0' }}>
+            Manage Users
+          </h1>
+          <p style={{ color: '#9ca3af', fontSize: '14px', margin: 0 }}>
+            Manage user roles and status ({filteredUsers.length} users)
+          </p>
+        </div>
+
+        {/* Success Message */}
+        {successMessage && (
+          <div
+            style={{
+              background: 'rgba(16, 185, 129, 0.2)',
+              border: '1px solid #10b981',
+              color: '#6ee7b7',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              marginBottom: '16px',
+            }}
+          >
+            {successMessage}
+          </div>
+        )}
+
+        {/* Filters */}
+        <div style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+          <input
+            type="text"
+            placeholder="Search by email or name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              padding: '10px 12px',
+              background: '#1a1a2e',
+              border: '1px solid #3b4256',
+              borderRadius: '8px',
+              color: '#ffffff',
+              fontSize: '14px',
+            }}
+          />
+
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            style={{
+              padding: '10px 12px',
+              background: '#1a1a2e',
+              border: '1px solid #3b4256',
+              borderRadius: '8px',
+              color: '#ffffff',
+              fontSize: '14px',
+            }}
+          >
+            <option value="all">All Roles</option>
+            <option value="admin">Admins</option>
+            <option value="lawyer">Lawyers</option>
+            <option value="user">Users</option>
+          </select>
+        </div>
+
+        {/* Users Table */}
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+            border: '1px solid #3b4256',
+            borderRadius: '12px',
+            overflow: 'hidden',
+          }}
+        >
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #3b4256', backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
+                  <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#9ca3af' }}>
+                    Email
+                  </th>
+                  <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#9ca3af' }}>
+                    Name
+                  </th>
+                  <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#9ca3af' }}>
+                    Role
+                  </th>
+                  <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#9ca3af' }}>
+                    Status
+                  </th>
+                  <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#9ca3af' }}>
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>
+                      No users found
                     </td>
-                    <td style={{ padding: "16px 20px", fontSize: "13px", color: "#9ca3af" }}>{user.email}</td>
-                    <td style={{ padding: "16px 20px", fontSize: "13px" }}>
-                      {editingId === user.id ? (
+                  </tr>
+                ) : (
+                  filteredUsers.map((user, index) => (
+                    <tr
+                      key={user.id}
+                      style={{
+                        borderBottom: index !== filteredUsers.length - 1 ? '1px solid #3b4256' : 'none',
+                        backgroundColor: index % 2 === 0 ? 'transparent' : 'rgba(0, 0, 0, 0.1)',
+                      }}
+                    >
+                      <td style={{ padding: '16px 20px', fontSize: '13px', color: '#e5e7eb' }}>
+                        {user.email}
+                      </td>
+                      <td style={{ padding: '16px 20px', fontSize: '13px', color: '#9ca3af' }}>
+                        {user.name || 'N/A'}
+                      </td>
+                      <td style={{ padding: '16px 20px', fontSize: '13px' }}>
                         <select
-                          value={newRole}
-                          onChange={(e) => setNewRole(e.target.value)}
+                          value={user.role}
+                          onChange={(e) => handleRoleChange(user.id, e.target.value)}
                           style={{
-                            background: "rgba(0, 0, 0, 0.3)",
-                            border: "1px solid #3b82f6",
-                            borderRadius: "6px",
-                            padding: "6px 10px",
-                            color: "#ffffff",
-                            fontSize: "12px",
+                            padding: '6px 8px',
+                            background: 'rgba(0, 0, 0, 0.3)',
+                            border: `1px solid ${getRoleColor(user.role)}`,
+                            borderRadius: '4px',
+                            color: getRoleColor(user.role),
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
                           }}
                         >
                           <option value="user">User</option>
                           <option value="lawyer">Lawyer</option>
                           <option value="admin">Admin</option>
                         </select>
-                      ) : (
+                      </td>
+                      <td style={{ padding: '16px 20px', fontSize: '13px' }}>
                         <span
                           style={{
-                            background: roleColor.bg,
-                            color: roleColor.color,
-                            padding: "6px 12px",
-                            borderRadius: "6px",
-                            fontSize: "12px",
-                            fontWeight: "500",
-                            textTransform: "capitalize",
+                            background: user.isBlocked ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                            color: user.isBlocked ? '#ef4444' : '#10b981',
+                            padding: '4px 12px',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: '500',
                           }}
                         >
-                          {user.role}
+                          {user.isBlocked ? 'Blocked' : 'Active'}
                         </span>
-                      )}
-                    </td>
-                    <td style={{ padding: "16px 20px", textAlign: "center" }}>
-                      {editingId === user.id ? (
-                        <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
-                          <button
-                            onClick={() => handleSaveRole(user.id)}
-                            style={{
-                              background: "#10b981",
-                              color: "#ffffff",
-                              border: "none",
-                              padding: "6px 12px",
-                              borderRadius: "6px",
-                              fontSize: "12px",
-                              fontWeight: "500",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Save
-                          </button>
-                          <button
-                            onClick={() => setEditingId(null)}
-                            style={{
-                              background: "#6b7280",
-                              color: "#ffffff",
-                              border: "none",
-                              padding: "6px 12px",
-                              borderRadius: "6px",
-                              fontSize: "12px",
-                              fontWeight: "500",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
-                          <button
-                            onClick={() => handleChangeRole(user.id, user.role)}
-                            style={{
-                              background: "#3b82f6",
-                              color: "#ffffff",
-                              border: "none",
-                              padding: "6px 12px",
-                              borderRadius: "6px",
-                              fontSize: "12px",
-                              fontWeight: "500",
-                              cursor: "pointer",
-                              transition: "background 0.2s ease",
-                            }}
-                            onMouseEnter={(e) => (e.target.style.background = "#2563eb")}
-                            onMouseLeave={(e) => (e.target.style.background = "#3b82f6")}
-                          >
-                            Change Role
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(user.id)}
-                            style={{
-                              background: "#ef4444",
-                              color: "#ffffff",
-                              border: "none",
-                              padding: "6px 12px",
-                              borderRadius: "6px",
-                              fontSize: "12px",
-                              fontWeight: "500",
-                              cursor: "pointer",
-                              transition: "background 0.2s ease",
-                            }}
-                            onMouseEnter={(e) => (e.target.style.background = "#dc2626")}
-                            onMouseLeave={(e) => (e.target.style.background = "#ef4444")}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td style={{ padding: '16px 20px', fontSize: '13px' }}>
+                        <button
+                          onClick={() => handleToggleBlock(user.id, user.isBlocked)}
+                          style={{
+                            padding: '6px 12px',
+                            background: user.isBlocked ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                            border: `1px solid ${user.isBlocked ? '#10b981' : '#ef4444'}`,
+                            borderRadius: '4px',
+                            color: user.isBlocked ? '#6ee7b7' : '#f87171',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.opacity = '0.8';
+                            e.currentTarget.style.transform = 'scale(1.05)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.opacity = '1';
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }}
+                        >
+                          {user.isBlocked ? 'Unblock' : 'Block'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
-      <style>{`
-        @media (max-width: 768px) {
-          table {
-            font-size: 12px;
+        <style>{`
+          @media (max-width: 768px) {
+            table {
+              font-size: 11px;
+            }
+            table td, table th {
+              padding: 12px 10px !important;
+            }
           }
-          table td, table th {
-            padding: 12px 10px !important;
-          }
-        }
-      `}</style>
-    </div>
+        `}</style>
+      </div>
+    </AdminGuard>
   );
 };
 
-export default ManageUsers;
+export default ManageUsersPage;
