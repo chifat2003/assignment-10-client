@@ -5,7 +5,12 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 const client = new MongoClient(process.env.MONGODB_URI);
 const db = client.db(process.env.AUTH_DB_NAME);
 
+// The URL of THIS Next.js app (not the Express backend)
+const appUrl = process.env.BETTER_AUTH_URL
+  || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
 export const auth = betterAuth({
+  baseURL: appUrl,
   emailAndPassword: {
     enabled: true,
   },
@@ -14,7 +19,7 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      redirectURI: `${process.env.BETTER_AUTH_URL}/api/auth/callback/google`,
+      redirectURI: `${appUrl}/api/auth/callback/google`,
     },
   },
   account: {
