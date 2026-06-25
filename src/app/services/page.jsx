@@ -63,10 +63,6 @@ function ServicesPageContent() {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedServices = filteredServices.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, selectedSpecialization, selectedLawyer]);
-
   if (isLoading) {
     return <LoadingSpinner size="lg" />;
   }
@@ -92,7 +88,7 @@ function ServicesPageContent() {
               type="text"
               placeholder="Search by name or description..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               style={{
                 width: '100%',
                 padding: '10px 14px',
@@ -114,7 +110,7 @@ function ServicesPageContent() {
             </label>
             <select
               value={selectedSpecialization}
-              onChange={(e) => setSelectedSpecialization(e.target.value)}
+              onChange={(e) => { setSelectedSpecialization(e.target.value); setCurrentPage(1); }}
               style={{
                 width: '100%',
                 padding: '10px 14px',
@@ -139,7 +135,7 @@ function ServicesPageContent() {
             </label>
             <select
               value={selectedLawyer}
-              onChange={(e) => setSelectedLawyer(e.target.value)}
+              onChange={(e) => { setSelectedLawyer(e.target.value); setCurrentPage(1); }}
               style={{
                 width: '100%',
                 padding: '10px 14px',

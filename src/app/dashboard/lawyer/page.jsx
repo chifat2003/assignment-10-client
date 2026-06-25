@@ -62,13 +62,11 @@ export default function LawyerDashboard() {
     if (session.user?.role === "admin")    { router.replace("/dashboard/admin"); return; }
 
     let cancelled = false;
-    setDataLoading(true);
 
     fetch("/api/hirings")
       .then((res) => (res.ok ? res.json() : Promise.reject("fetch failed")))
-      .then((data) => { if (!cancelled) setHirings(Array.isArray(data) ? data : []); })
-      .catch((e) => { console.error("Error fetching hirings:", e); if (!cancelled) setHirings([]); })
-      .finally(() => { if (!cancelled) setDataLoading(false); });
+      .then((data) => { if (!cancelled) { setHirings(Array.isArray(data) ? data : []); setDataLoading(false); } })
+      .catch((e) => { console.error("Error fetching hirings:", e); if (!cancelled) { setHirings([]); setDataLoading(false); } });
 
     return () => { cancelled = true; };
   }, [isPending, session, router]);
