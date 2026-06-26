@@ -39,7 +39,7 @@ const Navbar = () => {
                                 alt="LegalEase logo"
                                 width={140}
                                 height={40}
-                                style={{ objectFit: "contain", height: 40, width: "auto" }}
+                                style={{ objectFit: "contain" }}
                                 priority
                             />
                         </Link>

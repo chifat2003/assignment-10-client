@@ -16,7 +16,7 @@ const Footer = () => {
                 alt="LegalEase logo"
                 width={140}
                 height={40}
-                style={{ objectFit: "contain", height: 40, width: "auto" }}
+                style={{ objectFit: "contain" }}
               />
             </Link>
             <p className="text-sm text-gray-600 dark:text-gray-400">Your trusted legal partner — expert attorneys, simplified.</p>
